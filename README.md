@@ -80,6 +80,8 @@ Here are all the inputs [do-spaces-action](https://github.com/BetaHuhn/do-spaces
 | `versioning` | Enable versioning (either set it to true or specify path to package.json) - [more info](#versioning) | **No** | `false` |
 | `cdn_domain` | Custom domain pointing to your CDN endpoint - [more info](#cdn-domain) | **No** | N/A |
 | `permission` | Access permissions of the uploaded files - [more info](#file-permissions) | **No** | `public-read` |
+| `purge_cache` | Purge CDN cache at the uploaded file paths (requires API token) | **No** | `false` |
+| `do_token` | DigitalOcean API token, required for purge cache functionality. Required scopes: `cdn:read` and `cdn:delete` | **No** | N/A |
 
 ### Authentication
 

@@ -3,11 +3,13 @@ const fs = require('fs')
 const path = require('path')
 
 const config = require('./config')
-const S3 = require('./interface')
+const S3 = require('./s3-interface')
+const DigitalOcean = require('./do-interface')
 const { forEach, getVersion } = require('./helpers')
 
 const run = async () => {
 	const shouldVersion = config.versioning !== 'false'
+	const uploadedFilePaths = []
 
 	let outDir = config.outDir
 	if (shouldVersion) {
@@ -28,6 +30,14 @@ const run = async () => {
 		permission: config.permission
 	})
 
+	const digitalOcean = new DigitalOcean({
+		doToken: config.doToken,
+		originURL: config.outDir,
+		spaceName: config.spaceName,
+		spaceRegion: config.spaceRegion,
+		outDir: config.outDir
+	})
+
 	const fileStat = await fs.promises.stat(config.source)
 	const isFile = fileStat.isFile()
 
@@ -36,6 +46,7 @@ const run = async () => {
 		const s3Path = path.join(outDir, fileName)
 
 		core.debug('Uploading file: ' + s3Path)
+		uploadedFilePaths.push(s3Path)
 		await s3.upload(config.source, s3Path)
 
 		if (shouldVersion) {
@@ -58,12 +69,14 @@ const run = async () => {
 					const s3Path = path.join(outDir, path.relative(config.source, fullPath))
 
 					core.debug('Uploading file: ' + s3Path)
+					uploadedFilePaths.push(s3Path)
 					await s3.upload(fullPath, s3Path)
 
 					if (shouldVersion) {
 						const s3PathLatest = path.join(config.outDir, 'latest', path.relative(config.source, fullPath))
 
 						core.debug('Uploading file to latest: ' + s3PathLatest)
+						uploadedFilePaths.push(s3PathLatest)
 						await s3.upload(fullPath, s3PathLatest)
 					}
 				} else {
@@ -73,6 +86,11 @@ const run = async () => {
 		}
 
 		await uploadFolder(config.source)
+	}
+
+	if (config.purgeCache === 'true') {
+		core.debug('Purging CDN cache at uploaded file paths.')
+		await digitalOcean.purgeCache(uploadedFilePaths)
 	}
 
 	const outputPath = config.cdnDomain ? `https://${ config.cdnDomain }/${ outDir }` : `https://${ config.spaceName }.${ config.spaceRegion }.digitaloceanspaces.com/${ outDir }`

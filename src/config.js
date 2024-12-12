@@ -39,6 +39,14 @@ const config = {
 	permission: getInput({
 		key: 'permission',
 		default: 'public-read'
+	}),
+	purgeCache: getInput({
+		key: 'purge_cache',
+		default: false
+	}),
+	doToken: getInput({
+		key: 'do_token',
+		required: false
 	})
 }
 
