@@ -29,8 +29,14 @@ inputs:
   permission:
     description: 'DO secret key'
     required: false
+  purge_cache:
+    description: 'Purge CDN cache after uploading files'
+    required: false
+  do_token:
+    description: 'DO API token for purging CDN cache'
+    required: false
 runs:
-  using: 'node12'
+  using: 'node20'
   main: 'dist/index.js'
 branding:
   icon: 'package'
